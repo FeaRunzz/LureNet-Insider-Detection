@@ -1,2 +1,2 @@
-elk/data/
-*.log
+
+__pycache__/

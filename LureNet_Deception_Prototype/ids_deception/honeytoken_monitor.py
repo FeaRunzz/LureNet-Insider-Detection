@@ -18,7 +18,7 @@ DB_PASSWORD=SuperS3cretBackupPass!
 
 
 def deploy_honeytokens():
-
+    """Buat folder + file umpan kredensial. Dipanggil sekali saat sistem start."""
     os.makedirs(HONEYTOKEN_DIR, exist_ok=True)
     path = os.path.join(HONEYTOKEN_DIR, "aws_credentials.txt")
     with open(path, "w") as f:
@@ -44,6 +44,7 @@ class _HoneytokenEventHandler(FileSystemEventHandler):
             event_type=event_type,
             detail=f"File umpan ({decoy_type}) disentuh: {path}",
             severity=Severity.CRITICAL,
+            file_name=os.path.basename(path),
         )
 
     def on_modified(self, event):
@@ -60,7 +61,6 @@ class _HoneytokenEventHandler(FileSystemEventHandler):
 
 
 class HoneytokenMonitor:
-
     def __init__(self, watch_dir=HONEYTOKEN_DIR):
         self.watch_dir = watch_dir
         self._observer = Observer()

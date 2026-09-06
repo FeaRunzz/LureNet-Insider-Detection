@@ -4,6 +4,9 @@ networks:
   lurenet-network:
     driver: bridge
 
+volumes:
+  esdata:
+
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
@@ -14,6 +17,8 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
       - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
     networks:
       - lurenet-network
 

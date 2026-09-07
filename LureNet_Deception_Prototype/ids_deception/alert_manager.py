@@ -26,13 +26,17 @@ LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOG_DIR, "alerts.log")
 
-TS_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
+# Format ISO 8601 dengan presisi milidetik, contoh: 2026-09-07T14:23:03.456
+# Disepakati bareng Infra Engineer supaya Elasticsearch/Logstash bisa parse
+# timestamp otomatis tanpa konfigurasi tambahan.
+TS_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 
 # --- Konfigurasi pengiriman ke Logstash (Opsi A) ---
-# GANTI sesuai host:port input HTTP yang dipasang Infrastructure Engineer di
-# logstash.conf. Bisa di-override tanpa ubah kode lewat environment variable
-# LOGSTASH_URL, kalau ternyata beda antara laptop kamu, laptop dia, atau server.
-LOGSTASH_URL = os.environ.get("LOGSTASH_URL", "http://localhost:5044")
+# Endpoint hasil kesepakatan dengan Infra Engineer. Bisa di-override tanpa
+# ubah kode lewat environment variable LOGSTASH_URL -- PENTING kalau kalian
+# ternyata run di mesin/laptop yang beda (localhost cuma valid kalau
+# script ini & Docker Logstash jalan di mesin yang sama).
+LOGSTASH_URL = os.environ.get("LOGSTASH_URL", "http://localhost:8080")
 LOGSTASH_TIMEOUT = 1  # detik -- sengaja pendek biar IDS gak nge-freeze kalau Logstash lagi mati
 
 # Logger file (plain text, tanpa warna, biar gampang diparse/dianalisis, dan
@@ -46,13 +50,7 @@ if not _file_logger.handlers:
 
 
 def _send_to_logstash(payload: dict):
-    """
-    Kirim satu alert sebagai JSON ke Logstash lewat HTTP POST (Opsi A).
 
-    Dibungkus try/except supaya kalau Logstash belum jalan / network
-    bermasalah, IDS tetap jalan normal -- nggak crash, cuma diam-diam gagal
-    kirim ke Logstash, tapi tetap kecatat seperti biasa di alerts.log.
-    """
     try:
         requests.post(LOGSTASH_URL, json=payload, timeout=LOGSTASH_TIMEOUT)
     except requests.exceptions.RequestException:
@@ -67,18 +65,7 @@ def raise_alert(source: str, event_type: str, detail: str,
                  severity: Severity = Severity.MEDIUM,
                  src_ip: str | None = None,
                  file_name: str | None = None):
-    """
-    Catat satu alert intrusion/deception.
-
-    source     : nama sensor yang mendeteksi, misal "honeypot-ssh", "honeytoken-document"
-    event_type : jenis kejadian, misal "CONNECTION", "LOGIN_ATTEMPT", "FILE_ACCESS"
-    detail     : deskripsi bebas (username yang dicoba, path file, dll)
-    severity   : level keparahan (enum Severity)
-    src_ip     : IP sumber kalau relevan (None kalau tidak ada, misal file access lokal)
-    file_name  : nama file yang relevan kalau ada -- field terpisah, bukan cuma
-                 nempel di teks `detail` (ini yang diminta Infra Engineer)
-    """
-    timestamp = datetime.now().strftime(TS_FORMAT)[:-3]  # presisi milidetik
+    timestamp = datetime.now().strftime(TS_FORMAT)[:-3]  # potong ke milidetik
 
     # --- 1. Tetap tulis ke alerts.log kayak sebelumnya (plain text) ---
     ip_part = f" | src={src_ip}" if src_ip else ""
@@ -87,13 +74,19 @@ def raise_alert(source: str, event_type: str, detail: str,
     color = _COLOR.get(severity, "")
     print(f"{color}{line}{_RESET}")
 
-    # --- 2. Kirim juga versi JSON-nya ke Logstash (Opsi A, cabang baru) ---
+    # --- 2. Kirim juga versi JSON-nya ke Logstash (Opsi A) ---
+    # Nama field di sini sudah disesuaikan hasil kesepakatan dengan Infra
+    # Engineer, supaya cocok dengan logstash.conf & Data View Kibana yang
+    # sudah lebih dulu mereka buat -- jadi mereka tidak perlu ubah config lagi:
+    #   event_type (kode)  -> "action"     (JSON, key final)
+    #   src_ip     (kode)  -> "source_ip"  (JSON, key final)
+    #   source     (kode)  -> "source"     (JSON, key final -- tetap dipakai apa adanya)
     payload = {
         "timestamp": timestamp,
         "severity": severity.value,
-        "sensor": source,
-        "event_type": event_type,
-        "src_ip": src_ip,
+        "source": source,
+        "action": event_type,
+        "source_ip": src_ip,
         "file_name": file_name,
         "detail": detail,
     }

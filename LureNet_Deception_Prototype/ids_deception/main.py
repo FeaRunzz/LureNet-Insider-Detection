@@ -7,7 +7,7 @@ from generate_decoys import deploy_all_document_decoys
 
 
 SSH_PORT = 2222
-HTTP_PORT = 8080
+HTTP_PORT = 8083
 
 
 def main():

@@ -91,10 +91,15 @@ class _FakeAdminHandler(BaseHTTPRequestHandler):
         body = b"<html><body><h2>Admin Login</h2><form method='POST'>" \
                b"User: <input name='user'><br>Pass: <input name='pass' type='password'>" \
                b"<input type='submit'></form></body></html>"
-        self.send_response(200)
-        self.send_header("Content-Type", "text/html")
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html")
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):
+            # Client sudah menutup koneksi lebih dulu -- alert sudah tercatat
+            # di atas, jadi kegagalan kirim response ini aman diabaikan.
+            pass
 
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
@@ -106,10 +111,15 @@ class _FakeAdminHandler(BaseHTTPRequestHandler):
             severity=Severity.HIGH,
             src_ip=self.client_address[0],
         )
-        self.send_response(401)
-        self.send_header("Content-Type", "text/html")
-        self.end_headers()
-        self.wfile.write(b"<h3>401 Unauthorized</h3>")
+        try:
+            self.send_response(401)
+            self.send_header("Content-Type", "text/html")
+            self.end_headers()
+            self.wfile.write(b"<h3>401 Unauthorized</h3>")
+        except (BrokenPipeError, ConnectionResetError):
+            # Client sudah menutup koneksi lebih dulu -- alert sudah tercatat
+            # di atas, jadi kegagalan kirim response ini aman diabaikan.
+            pass
 
 
 class FakeAdminPanel(threading.Thread):

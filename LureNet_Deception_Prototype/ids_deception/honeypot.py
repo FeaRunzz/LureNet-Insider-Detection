@@ -6,7 +6,6 @@ from alert_manager import raise_alert, Severity
 
 
 class FakeSSHHoneypot(threading.Thread):
-    """Honeypot TCP sederhana yang meniru prompt login SSH."""
 
     def __init__(self, host="0.0.0.0", port=2222):
         super().__init__(daemon=True)

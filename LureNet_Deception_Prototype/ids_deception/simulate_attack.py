@@ -10,7 +10,7 @@ import urllib.request
 from alert_manager import LOG_FILE, TS_FORMAT
 
 SSH_PORT = 2222
-HTTP_PORT = 8080
+HTTP_PORT = 9090
 TARGET_HOST = "127.0.0.1"
 
 BASE_DIR = os.path.dirname(__file__)

@@ -10,12 +10,14 @@ import urllib.request
 from alert_manager import LOG_FILE, TS_FORMAT
 
 SSH_PORT = 2222
-HTTP_PORT = 9090
+HTTP_PORT = 8080
 TARGET_HOST = "127.0.0.1"
 
 BASE_DIR = os.path.dirname(__file__)
 HONEYTOKEN_DIR = os.path.join(BASE_DIR, "honeytokens")
 METRICS_FILE = os.path.join(BASE_DIR, "metrics_results.json")
+METRICS_RUNS_DIR = os.path.join(BASE_DIR, "metrics_runs")
+METRICS_HISTORY_FILE = os.path.join(BASE_DIR, "metrics_history.jsonl")
 
 
 def simulate_ssh_bruteforce():
@@ -24,9 +26,9 @@ def simulate_ssh_bruteforce():
     for user, pwd in creds:
         try:
             s = socket.create_connection((TARGET_HOST, SSH_PORT), timeout=3)
-            s.recv(1024)  # banner
+            s.recv(1024)  
             s.sendall((user + "\n").encode())
-            s.recv(1024)  # password prompt
+            s.recv(1024)  
             s.sendall((pwd + "\n").encode())
             s.recv(1024)
             s.close()
@@ -47,8 +49,6 @@ def simulate_http_probe():
         )
         urllib.request.urlopen(req, timeout=3)
     except Exception as e:
-        # 401 dari server juga masuk sini karena urllib treat non-2xx as error,
-        # itu normal & tetap kecatat sebagai alert di sisi server.
         print(f"[attacker]  -> request terkirim (server merespon: {e})")
 
 
@@ -59,7 +59,6 @@ def simulate_honeytoken_theft():
     if os.path.exists(src):
         shutil.move(src, dst)
         print(f"[attacker]  -> file dipindahkan ke {dst}")
-        # kembalikan lagi biar demo bisa diulang
         time.sleep(1)
         shutil.move(dst, src)
     else:
@@ -112,7 +111,6 @@ def _parse_ts(line):
 
 
 def measure_detection(label, action_fn, match_keywords, timeout=5):
-
     baseline = len(_read_log_lines())
     t_attack = datetime.now()
 
@@ -144,7 +142,7 @@ def measure_detection(label, action_fn, match_keywords, timeout=5):
         "matched_log_line": matched_line,
     }
 
-
+#penambahan yang baru dibawah inii
 def print_summary(results):
     print("\n" + "=" * 70)
     print(" RINGKASAN TIME-TO-DETECTION")
@@ -161,6 +159,7 @@ def print_summary(results):
         print(f"{r['action']:<28} {delta_str:<16} {status}")
 
     detected = [r for r in results if r["delta_seconds"] is not None]
+    avg = None
     if detected:
         avg = sum(r["delta_seconds"] for r in detected) / len(detected)
         print("-" * 70)
@@ -169,9 +168,31 @@ def print_summary(results):
             f"({len(detected)}/{len(results)} aksi terdeteksi)"
         )
 
+    run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # 1. Simpan hasil lengkap run ini ke file TERPISAH -- tidak ketimpa run lain
+    os.makedirs(METRICS_RUNS_DIR, exist_ok=True)
+    run_file = os.path.join(METRICS_RUNS_DIR, f"run_{run_timestamp}.json")
+    with open(run_file, "w") as f:
+        json.dump(results, f, indent=2)
+
+    # 2. Tetap simpan salinan "hasil terakhir" di lokasi lama (kompatibel)
     with open(METRICS_FILE, "w") as f:
         json.dump(results, f, indent=2)
-    print(f"\n[metrics] Hasil lengkap disimpan di: {METRICS_FILE}")
+
+    # 3. Tambahkan (append) 1 baris ringkasan ke riwayat semua run
+    summary_line = {
+        "run_timestamp": run_timestamp,
+        "avg_delta_seconds": round(avg, 3) if avg is not None else None,
+        "detected_count": len(detected),
+        "total_count": len(results),
+        "per_action": {r["action"]: r["delta_seconds"] for r in results},
+    }
+    with open(METRICS_HISTORY_FILE, "a") as f:
+        f.write(json.dumps(summary_line) + "\n")
+
+    print(f"\n[metrics] Detail run ini disimpan di: {run_file}")
+    print(f"[metrics] Ringkasan run ditambahkan ke riwayat: {METRICS_HISTORY_FILE}")
 
 
 if __name__ == "__main__":

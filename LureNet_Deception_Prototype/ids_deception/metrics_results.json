@@ -1,0 +1,37 @@
+[
+  {
+    "action": "SSH Bruteforce",
+    "t_attack": "2026-10-04T18:03:24.238",
+    "t_detect": "2026-10-04T18:03:24.267",
+    "delta_seconds": 0.029,
+    "matched_log_line": "[2026-10-04T18:03:24.267] [MEDIUM] [honeypot-ssh] CONNECTION | src=127.0.0.1 -> Ada koneksi masuk ke port SSH umpan"
+  },
+  {
+    "action": "HTTP Admin Probe",
+    "t_attack": "2026-10-04T18:03:56.639",
+    "t_detect": "2026-10-04T18:03:57.201",
+    "delta_seconds": 0.561,
+    "matched_log_line": "[2026-10-04T18:03:57.201] [MEDIUM] [honeypot-http] PAGE_ACCESS | src=127.0.0.1 -> GET /"
+  },
+  {
+    "action": "Honeytoken Kredensial Theft",
+    "t_attack": "2026-10-04T18:04:04.635",
+    "t_detect": "2026-10-04T18:04:04.729",
+    "delta_seconds": 0.093,
+    "matched_log_line": "[2026-10-04T18:04:04.729] [CRITICAL] [honeytoken-credential] FILE_MOVED_OR_RENAMED -> File umpan (credential) disentuh: /home/fadhil/lurenet/LureNet_Deception_Prototype/ids_deception/honeytokens/aws_credentials.txt"
+  },
+  {
+    "action": "Decoy Dokumen Access",
+    "t_attack": "2026-10-04T18:04:05.956",
+    "t_detect": "2026-10-04T18:04:06.112",
+    "delta_seconds": 0.155,
+    "matched_log_line": "[2026-10-04T18:04:06.112] [CRITICAL] [honeytoken-document] FILE_MOVED_OR_RENAMED -> File umpan (document) disentuh: /home/fadhil/lurenet/LureNet_Deception_Prototype/ids_deception/honeytokens/Data_Gaji_Karyawan_2026.csv"
+  },
+  {
+    "action": "Decoy Database Access",
+    "t_attack": "2026-10-04T18:04:08.453",
+    "t_detect": "2026-10-04T18:04:08.454",
+    "delta_seconds": 0.0,
+    "matched_log_line": "[2026-10-04T18:04:08.454] [CRITICAL] [honeytoken-database] FILE_MOVED_OR_RENAMED -> File umpan (database) disentuh: /home/fadhil/lurenet/LureNet_Deception_Prototype/ids_deception/honeytokens/customers_backup.db"
+  }
+]

@@ -1,0 +1,1 @@
+{"run_timestamp": "20261004_180409", "avg_delta_seconds": 0.168, "detected_count": 5, "total_count": 5, "per_action": {"SSH Bruteforce": 0.029, "HTTP Admin Probe": 0.561, "Honeytoken Kredensial Theft": 0.093, "Decoy Dokumen Access": 0.155, "Decoy Database Access": 0.0}}

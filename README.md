@@ -20,8 +20,6 @@ Sistem terdiri dari 3 lapisan:
 2. **Detection & Logging Layer**: honeypot/honeytoken (Python) → Logstash → Elasticsearch
 3. **Visualization Layer**: dashboard Kibana
 
-![[Pasted image 20261012155008.png]]
-
 **Pembagian lokasi komponen:**
 
 | Komponen              | Dijalankan sebagai      | Port |

@@ -1,4 +1,4 @@
-
+# LureNet — Insider Threat Detection System menggunakan Deception Technology
 LureNet adalah sistem deteksi **insider threat** (ancaman dari dalam organisasi) berbasis **deception technology**. Sistem ini memasang "umpan" (decoy) berupa file dokumen palsu, kredensial palsu, database palsu, serta layanan SSH/HTTP palsu. Karena umpan tersebut tidak pernah dipakai untuk pekerjaan yang sah, **setiap interaksi dengannya otomatis dianggap mencurigakan**. Seluruh aktivitas dicatat, diproses lewat ELK Stack, dan ditampilkan secara visual di dashboard Kibana.
 ## Latar Belakang
 

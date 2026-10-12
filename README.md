@@ -44,8 +44,8 @@ Sistem terdiri dari 3 lapisan:
 bash
 
 ```bash
-git clone <URL-REPOSITORY-INI>
-cd <nama-folder-repository>
+git clone https://github.com/FeaRunzz/LureNet-Insider-Detection.git
+cd LureNet-Insider-Detection
 ```
 
 ### 2. Nyalakan ELK Stack
